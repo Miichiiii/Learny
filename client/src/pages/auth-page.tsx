@@ -19,12 +19,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Extend the schema with client-side validation
-const loginSchema = insertUserSchema.extend({
+const loginSchema = insertUserSchema.pick({
+  username: true,
+  password: true,
+}).extend({
   username: z.string().min(3, "Benutzername muss mindestens 3 Zeichen lang sein"),
   password: z.string().min(6, "Passwort muss mindestens 6 Zeichen lang sein"),
 });
 
-const registerSchema = loginSchema.extend({
+const registerSchema = insertUserSchema.extend({
+  username: z.string().min(3, "Benutzername muss mindestens 3 Zeichen lang sein"),
+  email: z.string().email("Bitte gib eine gültige E-Mail-Adresse ein"),
+  password: z.string().min(6, "Passwort muss mindestens 6 Zeichen lang sein"),
   confirmPassword: z.string().min(6, "Passwort muss mindestens 6 Zeichen lang sein"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwörter stimmen nicht überein",
@@ -57,6 +63,7 @@ export default function AuthPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       username: "",
+      email: "",
       password: "",
       confirmPassword: "",
     },
@@ -152,6 +159,19 @@ export default function AuthPage() {
                           <FormLabel>Benutzername</FormLabel>
                           <FormControl>
                             <Input placeholder="Wähle einen Benutzernamen" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>E-Mail</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="Deine E-Mail-Adresse" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
