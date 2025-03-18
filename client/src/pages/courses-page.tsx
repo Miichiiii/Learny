@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import Navbar from "@/components/layout/navbar";
@@ -17,6 +17,7 @@ export default function CoursesPage() {
   const { toast } = useToast();
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [lessonProgress, setLessonProgress] = useState<number>(0);
+  const [isLoadingLesson, setIsLoadingLesson] = useState<boolean>(false);
 
   const { data: courses, isLoading: isLoadingCourses } = useQuery({
     queryKey: ["/api/courses"],
@@ -69,6 +70,27 @@ export default function CoursesPage() {
   const handleStartCourse = (course: any) => {
     startCourseMutation.mutate(course.id);
   };
+
+  // useEffect to simulate loading a lesson
+  useEffect(() => {
+    if (selectedCourse && lessonProgress < 100) {
+      setIsLoadingLesson(true);
+      
+      // Simulate the lesson loading
+      const timer = setInterval(() => {
+        setLessonProgress(prev => {
+          const newProgress = prev + 20;
+          if (newProgress >= 100) {
+            clearInterval(timer);
+            setIsLoadingLesson(false);
+          }
+          return Math.min(newProgress, 100);
+        });
+      }, 800); // Update every 800ms
+      
+      return () => clearInterval(timer);
+    }
+  }, [selectedCourse, lessonProgress]);
 
   // Complete lesson handler in dialog
   const handleCompleteLesson = () => {
@@ -158,6 +180,7 @@ export default function CoursesPage() {
                               onClick={() => {
                                 setSelectedCourse(course);
                                 setLessonProgress(0);
+                                setIsLoadingLesson(false);
                               }}
                             >
                               Fortsetzen
@@ -189,11 +212,6 @@ export default function CoursesPage() {
                         <Progress 
                           value={lessonProgress} 
                           className="h-2"
-                          onAnimationEnd={() => {
-                            if (lessonProgress < 100) {
-                              setLessonProgress(prev => Math.min(prev + 20, 100));
-                            }
-                          }}
                         />
                       </div>
                     ) : (
